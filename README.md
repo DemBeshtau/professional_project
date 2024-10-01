@@ -37,6 +37,7 @@ wordpress_6.6.2, prometheus-node-exporter mc;
 - **monitoring** (192.168.56.90):<br/>
   prometheus, prometheus-alertmanager, prometheus-node-exporter, default-jdk, grafana_10.2.2,<br/>
   logstash-8.9.1, elasticsearch-8.9.1, kibana-8.9.1, mc.
+
 &ensp;&ensp;Конфигурирование серверов производится посредством оркестратора Ansible. Для этого подготовлены соответствующие сценарии в виде ролей и исполнительный плэйбук provision.yml.<br/>
 &ensp;&ensp;Структура ansible-сценария представлена на диаграмме:
 ```shell
