@@ -15,4 +15,21 @@
   - основной сервер базы данных (БД) MySQL (hostname: **mastersdb**, IP: 192.168.1.69);
   - cервер репликации БД MySQL (hostname: **slavesdb**, IP: 192.168.1.98);
   - cервер мониторинга и логирования (hostname: **monitoring**, IP: 192.168.1.60).
+
+&ensp;&ensp;Перечень устанавливаемого программного обеспечения (ПО) для каждого из серверов:
+- **frontweb** (192.168.1.145, 192.168.56.145):<br/>
+  nginx, prometheus-node-exporter, filebeat_8.9.1, mc;
+- **backend1** (192.168.56.222):<br/>
+  apache2, php, php-mysql, libapache2-mod-rpaf, libapache2-mod-php, php-cli, php-cgi, php-gd,<br/>
+  wordpress_6.6.2, prometheus-node-exporter, mc;
+- **backend2** (192.168.56.212):<br/>
+apache2, php, php-mysql, libapache2-mod-rpaf, libapache2-mod-php, php-cli, php-cgi, php-gd,<br/>
+wordpress_6.6.2, prometheus-node-exporter mc;
+- **mastersdb** (192.168.56.69):<br/>
+  mysql-server-8.0, prometheus-node-exporter, mc;
+- **slavesdb** (192.168.56.98):<br/>
+  mysql-server-8.0, prometheus-node-exporter, mc;
+- **monitoring** (192.168.56.90):<br/>
+  prometheus, prometheus-alertmanager, prometheus-node-exporter, default-jdk, grafana_10.2.2,<br/>
+  logstash-8.9.1, elasticsearch-8.9.1, kibana-8.9.1, mc.
    
