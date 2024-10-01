@@ -39,6 +39,10 @@ wordpress_6.6.2, prometheus-node-exporter mc;
   logstash-8.9.1, elasticsearch-8.9.1, kibana-8.9.1, mc.
 
 &ensp;&ensp;Конфигурирование серверов производится посредством оркестратора Ansible. Для этого подготовлены соответствующие сценарии в виде ролей и исполнительный плэйбук provision.yml.<br/>
+&ensp;&ensp;Запуск плейбука осуществляется командой:
+```shell
+ansible-playbook provision.yml
+```
 &ensp;&ensp;Структура ansible-сценария представлена на диаграмме:
 ```shell
 ├── ansible.cfg
@@ -52,4 +56,4 @@ wordpress_6.6.2, prometheus-node-exporter mc;
 ├── slavesdb
 └── vault_pass
 ```
-   
+
