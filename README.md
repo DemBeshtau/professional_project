@@ -15,7 +15,7 @@
   - основной сервер базы данных (БД) MySQL (hostname: **mastersdb**, IP: 192.168.1.69);
   - cервер репликации БД MySQL (hostname: **slavesdb**, IP: 192.168.1.98);
   - cервер мониторинга и логирования (hostname: **monitoring**, IP: 192.168.1.60).
-### Схема проекта <br/>
+### Схема проекта
 
 &ensp;&ensp; Развёртывание стенда осуществляется командой:
 ```shell
@@ -38,7 +38,7 @@ wordpress_6.6.2, prometheus-node-exporter mc;
   prometheus, prometheus-alertmanager, prometheus-node-exporter, default-jdk, grafana_10.2.2,<br/>
   logstash-8.9.1, elasticsearch-8.9.1, kibana-8.9.1, mc.
 
-&ensp;&ensp;Конфигурирование серверов производится посредством оркестратора Ansible. Для этого подготовлены соответствующие сценарии в виде ролей и исполнительный плэйбук provision.yml.<br/>
+&ensp;&ensp;Конфигурирование серверов производится посредством оркестратора Ansible. Для этого подготовлены соответствующие сценарии в виде ролей и плэйбук provision.yml.<br/>
 &ensp;&ensp;Запуск плейбука осуществляется командой:
 ```shell
 ansible-playbook provision.yml
@@ -56,4 +56,17 @@ ansible-playbook provision.yml
 ├── slavesdb
 └── vault_pass
 ```
-
+- **ansible.cfg** - файл конфигурации Ansiblel;
+- **hosts** - файл реестра;
+- **provision.yml** - плейбук Ansible;
+- **vault_pass** - файл с паролем, необходимым для шифрования посредством ansible-vault. 
+### Реализованные роли Ansible:
+**preinstall**<br/>
+&ensp;&ensp;Первоначальная настройка серверов инфраструктуры:
+- настройка часового пояса;
+- установка программы mc.
+**frontweb** <br/>
+&ensp;&ensp;Настройка фронтенд сервера NGINX:
+- установка и конфигурирование веб-сервера NGINX;
+- установка filebeat;
+- настройка iptables.
