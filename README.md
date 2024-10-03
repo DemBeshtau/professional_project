@@ -80,7 +80,7 @@ ansible-playbook provision.yml
 - настройка правил iptables.<br/>
 
 **mastersdb**<br/>
-&ansp;&ensp;Настройка главного сервера БД MySQL:
+&ensp;&ensp;Настройка главного сервера БД MySQL:
 - установка и конфигурирование СУБД MySQL;
 - развёртывание БД WordPress;
 - настройка правил iptables.<br/>
