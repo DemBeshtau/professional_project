@@ -16,6 +16,7 @@
   - cервер репликации БД MySQL (hostname: **slavesdb**, IP: 192.168.1.98);
   - cервер мониторинга и логирования (hostname: **monitoring**, IP: 192.168.1.60).
 ### Схема проекта
+![Prof_project](https://github.com/user-attachments/assets/3ff4e6fd-d107-4537-bd4b-0a7761463ecb)
 
 &ensp;&ensp; Развёртывание стенда осуществляется командой:
 ```shell
