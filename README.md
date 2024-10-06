@@ -10,11 +10,11 @@
 &ensp;&ensp;Развёртывание необходимой для выполнения проекта инфраструктуры проводились с использованием Vagrant 2.4.0, VirtualBox 7.0.18, Ansible 9.4.0 и образа ubuntu/jammy64 версии 20240301.0.0.<br/> 
 &ensp;&ensp;Стенд с проектом представлен шестью серверами:
   - сервер балансировки нагрузки NGINX (hostname: **frontweb**, IP: 192.168.1.145, 192.168.56.145);
-  - первый бэкенд-сервер Apache (hostname: **backend1**, IP: 192.168.1.222);
-  - второй бэкенд-сервер Apache (hostname: **backend2**, IP: 192.168.1.212);
-  - основной сервер базы данных (БД) MySQL (hostname: **mastersdb**, IP: 192.168.1.69);
-  - cервер репликации БД MySQL (hostname: **slavesdb**, IP: 192.168.1.98);
-  - cервер мониторинга и логирования (hostname: **monitoring**, IP: 192.168.1.60).
+  - первый бэкенд-сервер Apache (hostname: **backend1**, IP: 192.168.56.222);
+  - второй бэкенд-сервер Apache (hostname: **backend2**, IP: 192.168.56.212);
+  - основной сервер базы данных (БД) MySQL (hostname: **mastersdb**, IP: 192.168.56.69);
+  - cервер репликации БД MySQL (hostname: **slavesdb**, IP: 192.168.56.98);
+  - cервер мониторинга и логирования (hostname: **monitoring**, IP: 192.168.56.60).
 ### Схема проекта
 ![Prof_project](https://github.com/user-attachments/assets/3ff4e6fd-d107-4537-bd4b-0a7761463ecb)
 
@@ -111,6 +111,20 @@ ansible-playbook --tags=preinstall,mastersdb provision.yml
 ![изображение](https://github.com/user-attachments/assets/624b3c5a-e288-4200-b2c6-9da2d1ec81d8)
 
 ![изображение](https://github.com/user-attachments/assets/a2375720-224d-435a-ae05-f140d917b5f3)
+
+&ensp;&ensp;Prometheus собирает метрики node_exporter, которые отображает Grafana.
+![изображение](https://github.com/user-attachments/assets/8e985b81-7053-4a26-9f7d-fab8d5eedb4b)
+
+&ensp;&ensp;При недоступности какого-либо из хостов Prometheus отображает alert.
+![изображение](https://github.com/user-attachments/assets/07bf03ec-d495-42d3-98b6-7ab7c0f8c403)
+
+&ensp;&ensp;Alertmanager отправляет уведомления на почту.
+![изображение](https://github.com/user-attachments/assets/ccccaac3-b97e-4d71-85f5-aa59e4af990b)
+
+&ensp;&ensp;Проверка работоспособности стека ELK.
+![изображение](https://github.com/user-attachments/assets/3b0b3f20-a8ab-450a-9657-02d6ee65924f)
+
+
 
 
 
