@@ -1,0 +1,13 @@
+---
+- name: Setting timezone
+  timezone:
+    name: Europe/Moscow  
+
+- name: Installing base packages
+  apt:
+    name:
+      - prometheus-node-exporter
+      - mc
+    state: present
+    update_cache: yes  
+...

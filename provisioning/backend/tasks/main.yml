@@ -1,0 +1,87 @@
+---
+- name: Installing Apache and necessary soft for this service
+  apt: 
+    name:
+      - apache2
+      - php
+      - php-mysql
+      - libapache2-mod-rpaf
+      - libapache2-mod-php
+      - php-cli
+      - php-cgi
+      - php-gd
+    state: present
+    update_cache: yes
+
+- name: Enabling Apache modules
+  apache2_module:
+    state: present
+    name: "{{ item.module }}"
+  with_items:
+    - { module: "rewrite" }
+    - { module: "rpaf" }
+    - { module: "remoteip" }
+      #- rewrite    
+      #- rpaf
+      #- remoteip
+
+- name: Copying Apache configuration file
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - { src: "000-default.conf.j2", dest: "/etc/apache2/sites-available/000-default.conf"}
+    - { src: "ports.conf.j2", dest: "/etc/apache2/ports.conf"}
+    - { src: "remoteip.conf.j2", dest: "/etc/apache2/conf-available/remoteip.conf"}
+  notify: Restart apache2
+
+- name: Downloading Wordpress files
+  get_url:
+    url: http://wordpress.org/latest.tar.gz
+    dest: /home/vagrant/latest.tar.gz
+
+- name: Unarchiving Wordpress files
+  unarchive:
+    src: /home/vagrant/latest.tar.gz
+    dest: /var/www/html/
+    remote_src: true
+  notify: Restart apache2
+
+- name: Copying Wordpress configuration files
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: www-data
+    group: www-data
+    mode: 0755
+  with_items:
+    - { src: "wp-config.php.j2", dest: "/var/www/html/wordpress/wp-config.php" }
+    - { src: "functions.php.j2", dest: "/var/www/html/wordpress/wp-content/themes/twentytwentyfour/functions.php" }
+  notify: Restart apache2
+  
+
+#- name: Installing Wordpress
+#  synchronize:
+#    src: files/wordpress
+#    dest: /var/www/html
+#    recursive: yes
+#  notify: Restart apache2
+
+- name: Changing rights on Wordpress
+  file:
+    path: /var/www/html/wordpress
+    recurse: yes
+    owner: www-data
+    group: www-data
+    mode: 0744
+  notify: Restart apache2
+
+- name: Restart apache2
+  meta: flush_handlers
+
+- name: Congigure iptables
+  import_tasks: firewall.yml
+...

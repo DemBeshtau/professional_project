@@ -1,0 +1,169 @@
+---
+- name: Installing -prometheus- and -java-
+  apt:
+    name:
+      - prometheus
+      - prometheus-alertmanager
+      - default-jdk
+    state: present
+    update_cache: yes
+
+- name: Copying -grafana- deb-package and dashboard on target host
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}" 
+  with_items:
+    - { src: "grafana_10.2.2_amd64.deb", dest: "/tmp/garafana_10.2.2_amd64.deb" }
+    - { src: "1860_rev33.json", dest: "/tmp/1860_rev33.json" }
+
+- name: Installing -Grafana- service
+  apt:
+    deb: /tmp/garafana_10.2.2_amd64.deb
+    state: present
+
+- name: Configuring -Grafana- service
+  copy:
+    src: grafana.db
+    dest: /var/lib/grafana/grafana.db
+    owner: grafana
+    group: grafana
+    mode: 0640
+
+- name: Starting and enabling -grafana- service
+  systemd:
+    name: grafana-server
+    enabled: yes
+    state: started
+
+- name: Copying -Prometheus- and -Alertmanager- configuration file
+  template:
+     src: "{{ item.src }}"
+     dest: "{{ item.dest }}" 
+  with_items:
+    - { src: "prometheus.yml.j2", dest: "/etc/prometheus/prometheus.yml" }
+    - { src: "alertmanager.yml.j2", dest: "/etc/prometheus/alertmanager.yml" }
+
+- name: Copying alert rules file
+  copy:
+    src: "files/alert.rules.yml"
+    dest: "/etc/prometheus/alert.rules.yml"
+
+- name: Restarting -Alertmanager-
+  systemd:
+    name: prometheus-alertmanager
+    state: restarted
+
+- name: Restarting -Prometheus- service
+  systemd:
+    name: prometheus
+    state: restarted
+
+- name: Copying -logstash- -elasticsearch- -kibana- packages on target host
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { src: "logstash-8.9.1-amd64.deb", dest: "/tmp/logstash-8.9.1-amd64.deb" }
+    - { src: "elasticsearch-8.9.1-amd64.deb", dest: "/tmp/elasticsearch-8.9.1-amd64.deb" }
+    - { src: "kibana-8.9.1-amd64.deb", dest: "/tmp/kibana-8.9.1-amd64.deb" }
+
+- name: Installing -elasticsearch- service
+  apt:
+    deb: /tmp/elasticsearch-8.9.1-amd64.deb
+    state: present
+
+- name: Configuring -elasticsearch- service
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: elasticsearch
+    mode: 0644
+  with_items: 
+    - { src: "elasticsearch.yml", dest: "/etc/elasticsearch/elasticsearch.yml" }  
+    - { src: "jvm.options", dest: "/etc/elasticsearch/jvm.options" } 
+
+- name: Strarting -elasticsearch- service
+  systemd:
+    name: elasticsearch
+    enabled: yes
+    state: started
+
+- name: Installing -logstash- service
+  apt:
+    deb: /tmp/logstash-8.9.1-amd64.deb
+    state: present
+
+- name: Configuring -logstash- service
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - { src: "logstash.yml", dest: "/etc/logstash/logstash.yml" }  
+    - { src: "logstash-nginx-es.conf", dest: "/etc/logstash/conf.d/logstash-nginx-es.conf" }
+
+- name: Starting -logstash- service
+  systemd:
+    name: logstash
+    enabled: yes
+    state: started
+
+- name: Installing -kibana- service
+  apt:
+    deb: /tmp/kibana-8.9.1-amd64.deb
+    state: present
+
+- name: Configuring -kibana- service
+  copy:
+    src: files/kibana.yml
+    dest: /etc/kibana/kibana.yml
+    owner: root
+    group: kibana
+    mode: 0644
+
+- name: Starting -kibana- service
+  systemd:
+    name: kibana
+    enabled: yes
+    state: started
+
+- name: Copying -Kibana- object to target host
+  copy:
+    src: files/export.ndjson
+    dest: /tmp/export.ndjson
+
+- name: Checking -Kibana- service status
+  uri:
+    url: "http://192.168.56.60:5601/api/status"
+    method: GET
+    headers: 
+      kbn-xsrf: "true"
+    status_code: 200
+    return_content: no
+  register: kibana_status
+  until: kibana_status.status == 200
+  retries: 30
+  delay: 10
+
+- name: Import -Kibana- object
+  uri:
+    url: "http://192.168.56.60:5601/api/saved_objects/_import"
+    method: POST
+    headers:
+      kbn-xsrf: "true"
+    body_format: form-multipart
+    body: 
+      file:
+        src: /tmp/export.ndjson
+        filename: /tmp/export.ndjson
+    status_code: 200, 201
+    remote_src: yes
+  #delegate_to: localhost
+  when: kibana_status.status == 200
+
+- name: Congigure iptables
+  import_tasks: firewall.yml
+...

@@ -1,0 +1,50 @@
+---
+- name: Installing -NGINX- 
+  apt: 
+    name:
+      - nginx
+    state: present
+    update_cache: true
+
+- name: Copying -filebeat- deb-package on target host
+  copy: 
+    src: filebeat-8.9.1-amd64.deb
+    dest: /tmp/filebeat-8.9.1-amd64.deb
+
+- name: Installing -filebeat-
+  apt:
+    deb: /tmp/filebeat-8.9.1-amd64.deb
+
+- name: Starting -filebeat-
+  systemd:
+    name: filebeat
+    enabled: yes
+    state: started
+
+- name: Creating ssl directory in nginx 
+  file: 
+    path: /etc/nginx/ssl
+    state: directory
+    mode: 0755
+
+
+- name: Copying configuration files for -NGINX- and -filebeat-
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - { src: "filebeat.yml.j2", dest: "/etc/filebeat/filebeat.yml" }
+    - { src: "default.j2", dest: "/etc/nginx/sites-available/default" }
+    - { src: "ca.crt.j2", dest: "/etc/nginx/ssl/ca.crt" }
+    - { src: "ca.key.j2", dest: "/etc/nginx/ssl/ca.key" }
+  notify:
+    - Reload NGINX
+    - Restart filebeat   
+
+- name: Congigure iptables
+  import_tasks: firewall.yml
+
+...

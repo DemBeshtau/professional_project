@@ -1,0 +1,7 @@
+RemoteIpHeader X-Real-IP
+{% if ansible_hostname == 'backend1' %}
+RemoteIPTrustedProxy {{ ansible_host }}
+{% endif %}
+{% if ansible_hostname == 'backend2' %}
+RemoteIPTrustedProxy {{ ansible_host }}
+{% endif %}

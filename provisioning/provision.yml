@@ -1,0 +1,49 @@
+---
+- name: Initial configuration of hosts
+  hosts: all
+  become: yes
+  roles:
+    - role: preinstall
+      tags: preinstall
+
+- name: Front NGINX server configuring
+  hosts: frontweb
+  become: yes
+  roles:
+    - role: frontweb
+      tags: frontweb
+    
+- name: Backend Apache servers configuring
+  hosts: backend1, backend2
+  become: yes
+  roles: 
+    - role: backend
+      tags: backend
+
+- name: Master server data base configuring
+  hosts: mastersdb
+  become: yes
+  vars_files:
+    - defaults/main.yml
+  roles:
+    - role: mastersdb
+      tags: mastersdb
+
+- name: Slave server database configuring
+  hosts: slavesdb
+  become: yes
+  vars_files:
+    - defaults/main.yml
+  roles:
+    - role: slavesdb
+      tags: slavesdb
+
+- name: Monitoring server configuring
+  hosts: monitoring
+  become: yes
+  vars_files:
+    - defaults/main.yml
+  roles:
+    - role: monitoring
+      tags: monitoring
+...

@@ -1,0 +1,64 @@
+
+# Default server configuration
+#
+upstream backend {
+	server 192.168.56.222:8080;
+	server 192.168.56.212:8081;
+}
+
+server {
+    listen 80;
+    listen 443 ssl;
+
+    server_name test-site.ru www.test-site.ru;
+    set $root_path /var/www/html/wordpress;
+    disable_symlinks if_not_owner from=$root_path;
+    index index.html index.php;
+
+    ssl_certificate     /etc/nginx/ssl/ca.crt;
+    ssl_certificate_key /etc/nginx/ssl/ca.key;
+    ssl_prefer_server_ciphers	off;
+    ssl_protocols		TLSv1.2 TLSv1.3;
+    ssl_ciphers			ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CHACHA20-POLY1305;
+    ssl_early_data		on;
+    ssl_session_tickets		on;
+    ssl_session_timeout		1h;
+    ssl_session_cache		shared:SSL:10m;
+
+    location / {
+#	proxy_pass http://192.168.1.222:8080;
+#	proxy_redirect http://192.168.1.222:8080/ /;
+	proxy_pass http://backend;
+#	proxy_redirect http://backend/ /;
+	proxy_set_header Host $host;
+	proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+	proxy_set_header X-Real-IP $remote_addr;
+	proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    
+    location @apache {
+#	proxy_pass http://192.168.1.222:8080;
+#	proxy_redirect http://192.168.1.222:8080/ /;
+	proxy_pass http://backend;
+#	proxy_redirect http://backend/ /;
+	proxy_set_header Host $host;
+	proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+	proxy_set_header X-Real-IP $remote_addr;
+	proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+#    location ~* ^.+\.(jpg|jpeg|gif|png|rar|txt|tar|bz2|pdf|bmp|js|ico|css|zip|tgz|gz)$ {
+#	root $root_path;
+#	error_page 404 = @apache;
+#    }
+
+#    location ~* ^/(webstat|awstats|webmail|myadmin|pgadmin)/ {
+#	error_page 404 = @apache;
+#	return 404;
+#    }
+
+#    location ~ /\.ht {
+#	return 404;
+#    }
+}

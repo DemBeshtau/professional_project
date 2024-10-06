@@ -1,0 +1,24 @@
+<Directory /var/www/html/wordpress>
+    Options Indexes FollowSymLinks
+    Require all granted
+    AllowOverride All
+</Directory>
+
+{% if ansible_hostname == 'backend1' %}
+<VirtualHost *:8080>
+{% endif %}
+{% if ansible_hostname == 'backend2' %}
+<VirtualHost *:8081>
+{% endif %}
+	ServerName example.com
+	ServerAlias www.example.com
+#	AssignUserID www-data www-data
+	DocumentRoot /var/www/html/wordpress
+	ServerAdmin webmaster@example.com
+	AddType application/x-httpd-php .php .php3 .php4 .php5 .phtml
+	AddType application/x-httpd-php-source .phps
+	
+	ErrorLog ${APACHE_LOG_DIR}/error.log
+	CustomLog ${APACHE_LOG_DIR}/access.log combined
+	
+</VirtualHost>

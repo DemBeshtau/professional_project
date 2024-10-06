@@ -1,0 +1,149 @@
+---
+- name: Installing MySQL server and other soft
+  apt:
+    name:
+      - mysql-server
+      - python3-pip
+      - sshpass
+    state: present
+    update_cache: yes
+
+- name: Installing additional Python packet - PyMySQL
+  pip:
+    name: PyMySQL
+
+- name: Statring MySQL service
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+
+- name: Clear old MySQL configuration file
+  file:
+    path: /etc/mysql/mysql.conf.d/mysqld.cnf
+    state: absent
+
+- name: Copying configuration file to Slave server
+  copy:
+    src: files/mysqld_slave.cnf
+    dest: /etc/mysql/mysql.conf.d/mysqld.cnf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Restart MySQL  
+
+- name: Generating .my.cnf file on Slave server
+  shell: "echo \"[mysql]\nuser='root'\npassword='{{ mysql_root_pass }}'\n\" > /root/.my.cnf"
+  args:
+    creates: /root/.my.cnf
+  notify: 
+    - Restart MySQL
+
+- name: Setting up root password on MySQL service
+  mysql_user:
+    name: root
+    host: localhost
+    password: "{{ mysql_root_pass }}"
+    login_user: root
+    login_password: "{{ mysql_root_pass }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    state: present
+    update_password: on_create
+  notify:
+    - Restart MySQL
+
+- name: Restart MySQL
+  meta: flush_handlers
+
+- name: Stopping replication
+  mysql_replication:
+    mode: stopreplica
+    login_user: root
+    login_password: "{{ mysql_root_pass }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Configuring replication
+  mysql_replication:
+    mode: changeprimary
+    login_user: root
+    login_password: "{{ mysql_root_pass }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    master_host: "{{ master_host }}"
+    master_port: 3306
+    master_auto_position: yes
+    master_user: "repl"
+    master_password: "{{ mysql_user_pass }}"
+  notify:
+    - Restart MySQL
+
+- name: Restart MySQL
+  meta: flush_handlers
+
+- name: Get new dump from Master
+  mysql_db:
+    login_user: root
+    login_password: "{{ mysql_root_pass }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    state: dump
+    name: all
+    target: /tmp/master.sql
+  delegate_to: "{{ hostvars['mastersdb'].ansible_hostname }}"    
+
+- name: Copying new DB dump from Master
+  synchronize:
+    mode: push
+    src: /tmp/master.sql
+    dest: /tmp/
+  delegate_to: "{{ hostvars['mastersdb'].ansible_hostname }}"
+
+- name: Loading DB dump
+  mysql_db:
+    login_user: root
+    login_password: "{{ mysql_root_pass }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    name: all
+    state: import
+    target: /tmp/master.sql
+
+#- name: Deleting DB dump
+#  file:
+#    path: /tmp/master.sql
+#    state: absent
+
+- name: Starting replication
+  mysql_replication:
+    mode: startreplica
+    login_user: root
+    login_password: "{{ mysql_root_pass }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Creating directory for MySQL backups
+  file:
+    path: /home/vagrant/db_backup
+    state: directory
+    owner: vagrant
+    group: vagrant
+    mode: 0755
+
+- name: Copying script for db backup
+  copy: 
+    src: files/backup_db.sh
+    dest: /home/vagrant/backup_db.sh
+    owner: vagrant
+    group: vagrant
+    mode: 0755
+
+- name: Creating a cron file in /etc/cron.d
+  cron:
+    name: MySQL backup
+    weekday: "6"
+    minute: "0"
+    hour: "22"
+    user: root
+    job: "/home/vagrant/backup_db.sh"
+    cron_file: mysql_backup
+    
+- name: Congigure iptables
+  import_tasks: firewall.yml
+...

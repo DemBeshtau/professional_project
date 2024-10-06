@@ -1,0 +1,7 @@
+[servers]
+frontweb ansible_host=192.168.56.145 ansible_user=vagrant ansible_password=vagrant
+backend1 ansible_host=192.168.56.222 ansible_user=vagrant ansible_password=vagrant
+backend2 ansible_host=192.168.56.212 ansible_user=vagrant ansible_password=vagrant 
+mastersdb ansible_host=192.168.56.69 ansible_user=vagrant ansible_password=vagrant
+slavesdb ansible_host=192.168.56.98 ansible_user=vagrant ansible_password=vagrant
+monitoring ansible_host=192.168.56.60 ansible_user=vagrant ansible_password=vagrant
