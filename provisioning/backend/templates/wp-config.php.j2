@@ -26,7 +26,7 @@ define( 'DB_NAME', 'wpress_db' );
 define( 'DB_USER', 'wp_user' );
 
 /** Database password */
-define( 'DB_PASSWORD', {{ mysql_wp_pass }} );
+define( 'DB_PASSWORD', '{{ mysql_wp_pass }}' );
 
 /** Database hostname */
 define( 'DB_HOST', '{{ hostvars['mastersdb'].ansible_host }}' );
